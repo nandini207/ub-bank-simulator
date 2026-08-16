@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Union Bank of India - Internet Banking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+            width: 440px;
+            overflow: hidden;
+        }
+        .header {
+            background: #003087;
+            color: white;
+            padding: 20px 24px;
+        }
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+        }
+        .header p {
+            font-size: 12px;
+            margin: 4px 0 0 0;
+            opacity: 0.8;
+        }
+        .simulator-tag {
+            display: inline-block;
+            background: #ff6b00;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .body {
+            padding: 24px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+        .info-box .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .info-box .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111;
+            margin-top: 2px;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
+        .section-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-success  { background: #28a745; color: white; }
+        .btn-failure  { background: #dc3545; color: white; }
+        .btn-pending  { background: #fd7e14; color: white; }
+        .btn-cancel   { background: #6c757d; color: white; }
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 16px;
+        }
+        .footer-note a { color: #003087; }
+    </style>
+</head>
+<body>
+<div class="card">
+
+    <!-- Bank Header -->
+    <div class="header">
+        <h1>🏦 Union Bank of India</h1>
+        <p>Internet Banking - Payment Authorization</p>
+        <span class="simulator-tag">⚡ SIMULATOR MODE</span>
+    </div>
+
+    <div class="body">
+
+        <!-- Transaction Details -->
+        <div class="info-box">
+            <div class="label">Merchant Name</div>
+            <div class="value" th:text="${billerName}">Airtel</div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">Amount</div>
+            <div class="value">
+                ₹ <span th:text="${amount}">1253.50</span>
+                (<span th:text="${crn}">INR</span>)
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">PG Reference Number</div>
+            <div class="value" th:text="${pgRef}">161020060507</div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Outcome Buttons -->
+        <p class="section-label">Select Payment Outcome</p>
+
+        <div class="button-grid">
+
+            <!-- SUCCESS -->
+            <form th:action="@{/corp/pay}" method="post">
+                <input type="hidden" name="pgRef"   th:value="${pgRef}"/>
+                <input type="hidden" name="outcome" value="SUCCESS"/>
+                <button type="submit" class="btn btn-success">✅ Pay (Success)</button>
+            </form>
+
+            <!-- FAILURE -->
+			<form th:action="@{/corp/pay}" method="post" class="outcome-form">
+			    <input type="hidden" name="pgRef"   th:value="${pgRef}"/>
+			    <input type="hidden" name="outcome" value="FAILURE"/>
+			    <div class="form-group">
+			        <label for="failureReason">Failure reason</label>
+			        <input type="text" id="failureReason" name="reason" value="insufficient balance"
+			               placeholder="e.g. Debit freez, Invalid OTP, Account frozen"/>
+			    </div>
+			    <button type="submit" class="btn btn-failure">❌ Fail</button>
+			</form>
+
+            <!-- PENDING (Corporate Maker-Checker) -->
+            <form th:action="@{/corp/pay}" method="post">
+                <input type="hidden" name="pgRef"   th:value="${pgRef}"/>
+                <input type="hidden" name="outcome" value="PENDING"/>
+                <button type="submit" class="btn btn-pending">⏳ Pending</button>
+            </form>
+
+            <!-- CANCEL -->
+            <form th:action="@{/corp/pay}" method="post">
+                <input type="hidden" name="pgRef"   th:value="${pgRef}"/>
+                <input type="hidden" name="outcome" value="CANCEL"/>
+                <button type="submit" class="btn btn-cancel">🚫 Cancel</button>
+            </form>
+
+        </div>
+
+        <p class="footer-note">
+            Tester Control Panel: <a href="/control">/control</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
