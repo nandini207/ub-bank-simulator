@@ -55,7 +55,7 @@ public class SimulatorRestController {
         // ✅ DUPLICATE CHECK: reject if pgRef already exists in memory
         TransactionRecord existing = transactionRepository.findByPgRef(pgRef);
         if (existing != null) {
-            log.warn("POST /api/payment/requests | DUPLICATE pgRef={} | rejected", pgRef);
+            log.debug("POST /api/payment/requests | DUPLICATE pgRef={} | rejected", pgRef);
             Map<String, Object> error = new LinkedHashMap<>();
             error.put("error",   "Duplicate pgRef");
             error.put("message", "A transaction with pgRef '" + pgRef + "' already exists. Each payment must have a unique pgRef.");
@@ -83,7 +83,7 @@ public class SimulatorRestController {
 
         transactionRepository.save(record);
 
-        log.info("POST /api/payment/requests | pgRef={} | responseUrl={}", pgRef, record.getResponseUrl());
+        log.debug("POST /api/payment/requests | pgRef={} | responseUrl={}", pgRef, record.getResponseUrl());
 
         return ResponseEntity.ok(toMap(record, now, now));
     }
@@ -96,11 +96,11 @@ public class SimulatorRestController {
             @RequestParam(required = false) String QS,
             @RequestBody(required = false) String body) {
 
-        log.info("==============================================");
-        log.info("✅ S2S CALLBACK RECEIVED at /api/callback/echo");
-        log.info("   QS param length = {}", QS != null ? QS.length() : 0);
-        log.info("   Body            = {}", body);
-        log.info("==============================================");
+        log.debug("==============================================");
+        log.debug("✅ S2S CALLBACK RECEIVED at /api/callback/echo");
+        log.debug("   QS param length = {}", QS != null ? QS.length() : 0);
+        log.debug("   Body            = {}", body);
+        log.debug("==============================================");
         return ResponseEntity.ok("OK");
     }
 
@@ -111,7 +111,7 @@ public class SimulatorRestController {
     public ResponseEntity<Map<String, Object>> getPaymentRequest(@PathVariable String pgRef) {
         TransactionRecord record = transactionRepository.findByPgRef(pgRef);
         if (record == null) {
-            log.warn("GET /api/payment/requests/{} - NOT FOUND", pgRef);
+            log.debug("GET /api/payment/requests/{} - NOT FOUND", pgRef);
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(toMap(record, null, null));
@@ -128,10 +128,10 @@ public class SimulatorRestController {
         String outcome = (String) body.get("outcome");
         String reason  = (String) body.getOrDefault("reason", "");
 
-        log.info("POST /api/payment/outcome | pgRef={} | outcome={} | reason={}", pgRef, outcome, reason);
+        log.debug("POST /api/payment/outcome | pgRef={} | outcome={} | reason={}", pgRef, outcome, reason);
 
         if (pgRef == null || pgRef.isBlank() || outcome == null || outcome.isBlank()) {
-            log.warn("POST /api/payment/outcome - pgRef or outcome is missing");
+            log.debug("POST /api/payment/outcome - pgRef or outcome is missing");
             return ResponseEntity.badRequest().build();
         }
 
@@ -143,7 +143,7 @@ public class SimulatorRestController {
 
         // ✅ DUPLICATE CHECK: reject if this transaction was already processed
         if (record.getStatus() != null) {
-            log.warn("POST /api/payment/outcome | ALREADY PROCESSED pgRef={} | status={}", pgRef, record.getStatus());
+            log.debug("POST /api/payment/outcome | ALREADY PROCESSED pgRef={} | status={}", pgRef, record.getStatus());
             Map<String, Object> error = new LinkedHashMap<>();
             error.put("error",   "Already processed");
             error.put("message", "Transaction '" + pgRef + "' was already processed with status " + normaliseStatus(record.getStatus()) + ". Create a new payment request to try again.");
@@ -172,7 +172,7 @@ public class SimulatorRestController {
         }
 
         TransactionRecord updated = transactionRepository.findByPgRef(pgRef);
-        log.info("POST /api/payment/outcome - DONE | pgRef={} | status={} | brn={}", pgRef, updated.getStatus(), updated.getBrn());
+        log.debug("POST /api/payment/outcome - DONE | pgRef={} | status={} | brn={}", pgRef, updated.getStatus(), updated.getBrn());
         return ResponseEntity.ok(toMap(updated, null, Instant.now().toString()));
     }
 
@@ -310,16 +310,16 @@ public class SimulatorRestController {
  @PostMapping("/payment/verify/{pgRef}")
  public ResponseEntity<Map<String, Object>> verifyPayment(@PathVariable String pgRef) {
 
-     log.info("POST /api/payment/verify/{} called", pgRef);
+     log.debug("POST /api/payment/verify/{} called", pgRef);
 
      TransactionRecord record = transactionRepository.findByPgRef(pgRef);
      if (record == null) {
-         log.warn("POST /api/payment/verify/{} - NOT FOUND", pgRef);
+         log.debug("POST /api/payment/verify/{} - NOT FOUND", pgRef);
          return ResponseEntity.notFound().build();
      }
 
      if (record.getStatus() == null) {
-         log.warn("POST /api/payment/verify/{} - payment not yet processed", pgRef);
+         log.debug("POST /api/payment/verify/{} - payment not yet processed", pgRef);
          Map<String, Object> error = new LinkedHashMap<>();
          error.put("error",   "Payment not processed yet");
          error.put("message", "Cannot verify a transaction that has not been paid yet.");
@@ -360,7 +360,7 @@ public class SimulatorRestController {
 
      // Return updated record with match result
      TransactionRecord updated = transactionRepository.findByPgRef(pgRef);
-     log.info("POST /api/payment/verify/{} - done | match={}", pgRef, updated.getVerificationStatusMatchesPayment());
+     log.debug("POST /api/payment/verify/{} - done | match={}", pgRef, updated.getVerificationStatusMatchesPayment());
      return ResponseEntity.ok(toMap(updated, null, Instant.now().toString()));
  }
 }
